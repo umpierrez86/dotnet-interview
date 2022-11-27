@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace TodoApi.Tests;
 
 #nullable disable
-public class TodoItemsControllerTests
+public class TodoListsControllerTests
 {
   private DbContextOptions<TodoContext> DatabaseContextOptions()
   {
@@ -17,8 +17,8 @@ public class TodoItemsControllerTests
 
   private void PopulateDatabaseContext(TodoContext context)
   {
-    context.TodoItem.Add(new Models.TodoItem { Id = 1, Name = "Task 1", IsComplete = true });
-    context.TodoItem.Add(new Models.TodoItem { Id = 2, Name = "Task 2", IsComplete = false });
+    context.TodoList.Add(new Models.TodoList { Id = 1, Name = "Task 1" });
+    context.TodoList.Add(new Models.TodoList { Id = 2, Name = "Task 2" });
     context.SaveChanges();
   }
 
@@ -29,14 +29,14 @@ public class TodoItemsControllerTests
     {
       PopulateDatabaseContext(context);
 
-      var controller = new TodoItemsController(context);
+      var controller = new TodoListsController(context);
 
       var result = await controller.GetTodoItems();
 
       Assert.IsType<OkObjectResult>(result.Result);
       Assert.Equal(
         2,
-        ((result.Result as OkObjectResult).Value as IList<TodoItem>).Count
+        ((result.Result as OkObjectResult).Value as IList<TodoList>).Count
       );
     }
   }
@@ -48,14 +48,14 @@ public class TodoItemsControllerTests
     {
       PopulateDatabaseContext(context);
 
-      var controller = new TodoItemsController(context);
+      var controller = new TodoListsController(context);
 
       var result = await controller.GetTodoItem(1);
 
       Assert.IsType<OkObjectResult>(result.Result);
       Assert.Equal(
         1,
-        ((result.Result as OkObjectResult).Value as TodoItem).Id
+        ((result.Result as OkObjectResult).Value as TodoList).Id
       );
     }
   }
@@ -67,9 +67,9 @@ public class TodoItemsControllerTests
     {
       PopulateDatabaseContext(context);
 
-      var controller = new TodoItemsController(context);
+      var controller = new TodoListsController(context);
 
-      var todoItem = await context.TodoItem.Where(x => x.Id == 2).FirstAsync();
+      var todoItem = await context.TodoList.Where(x => x.Id == 2).FirstAsync();
       var result = await controller.PutTodoItem(1, todoItem);
 
       Assert.IsType<BadRequestResult>(result);
@@ -83,9 +83,9 @@ public class TodoItemsControllerTests
     {
       PopulateDatabaseContext(context);
 
-      var controller = new TodoItemsController(context);
+      var controller = new TodoListsController(context);
 
-      var result = await controller.PutTodoItem(3, new TodoItem { Id = 3});
+      var result = await controller.PutTodoItem(3, new TodoList { Id = 3});
 
       Assert.IsType<NotFoundResult>(result);
     }
@@ -98,9 +98,9 @@ public class TodoItemsControllerTests
     {
       PopulateDatabaseContext(context);
 
-      var controller = new TodoItemsController(context);
+      var controller = new TodoListsController(context);
 
-      var todoItem = await context.TodoItem.Where(x => x.Id == 2).FirstAsync();
+      var todoItem = await context.TodoList.Where(x => x.Id == 2).FirstAsync();
       var result = await controller.PutTodoItem(todoItem.Id, todoItem);
 
       Assert.IsType<NoContentResult>(result);
@@ -114,15 +114,15 @@ public class TodoItemsControllerTests
     {
       PopulateDatabaseContext(context);
 
-      var controller = new TodoItemsController(context);
+      var controller = new TodoListsController(context);
 
-      var todoItem = new TodoItem { Name = "Task 3", IsComplete = false };
+      var todoItem = new TodoList { Name = "Task 3" };
       var result = await controller.PostTodoItem(todoItem);
 
       Assert.IsType<CreatedAtActionResult>(result.Result);
       Assert.Equal(
         3,
-        context.TodoItem.Count()
+        context.TodoList.Count()
       );
     }
   }
@@ -134,14 +134,14 @@ public class TodoItemsControllerTests
     {
       PopulateDatabaseContext(context);
 
-      var controller = new TodoItemsController(context);
+      var controller = new TodoListsController(context);
 
       var result = await controller.DeleteTodoItem(2);
 
       Assert.IsType<NoContentResult>(result);
       Assert.Equal(
         1,
-        context.TodoItem.Count()
+        context.TodoList.Count()
       );
     }
   }

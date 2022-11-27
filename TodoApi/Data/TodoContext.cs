@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TodoApi.Models;
 
 public class TodoContext : DbContext
 {
@@ -7,5 +8,5 @@ public class TodoContext : DbContext
   {
   }
 
-  public DbSet<TodoApi.Models.TodoItem> TodoItem { get; set; } = default!;
+  public DbSet<TodoList> TodoList { get; set; } = default!;
 }
