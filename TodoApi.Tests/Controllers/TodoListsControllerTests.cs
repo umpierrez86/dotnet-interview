@@ -23,7 +23,7 @@ public class TodoListsControllerTests
   }
 
   [Fact]
-  public async Task GetTodoItems_WhenCalled_ReturnsTodoItemsList()
+  public async Task GetTodoList_WhenCalled_ReturnsTodoListList()
   {
     using (var context = new TodoContext(DatabaseContextOptions()))
     {
@@ -31,7 +31,7 @@ public class TodoListsControllerTests
 
       var controller = new TodoListsController(context);
 
-      var result = await controller.GetTodoItems();
+      var result = await controller.GetTodoLists();
 
       Assert.IsType<OkObjectResult>(result.Result);
       Assert.Equal(
@@ -42,7 +42,7 @@ public class TodoListsControllerTests
   }
 
   [Fact]
-  public async Task GetTodoItem_WhenCalled_ReturnsTodoItemById()
+  public async Task GetTodoList_WhenCalled_ReturnsTodoListById()
   {
     using (var context = new TodoContext(DatabaseContextOptions()))
     {
@@ -50,7 +50,7 @@ public class TodoListsControllerTests
 
       var controller = new TodoListsController(context);
 
-      var result = await controller.GetTodoItem(1);
+      var result = await controller.GetTodoList(1);
 
       Assert.IsType<OkObjectResult>(result.Result);
       Assert.Equal(
@@ -61,7 +61,7 @@ public class TodoListsControllerTests
   }
 
   [Fact]
-  public async Task PutTodoItem_WhenTodoItemIdDoesntMatch_ReturnsBadRequest()
+  public async Task PutTodoList_WhenTodoListIdDoesntMatch_ReturnsBadRequest()
   {
     using (var context = new TodoContext(DatabaseContextOptions()))
     {
@@ -69,15 +69,15 @@ public class TodoListsControllerTests
 
       var controller = new TodoListsController(context);
 
-      var todoItem = await context.TodoList.Where(x => x.Id == 2).FirstAsync();
-      var result = await controller.PutTodoItem(1, todoItem);
+      var todoList = await context.TodoList.Where(x => x.Id == 2).FirstAsync();
+      var result = await controller.PutTodoList(1, todoList);
 
       Assert.IsType<BadRequestResult>(result);
     }
   }
 
   [Fact]
-  public async Task PutTodoItem_WhenTodoItemDoesntExist_ReturnsBadRequest()
+  public async Task PutTodoList_WhenTodoListDoesntExist_ReturnsBadRequest()
   {
     using (var context = new TodoContext(DatabaseContextOptions()))
     {
@@ -85,14 +85,14 @@ public class TodoListsControllerTests
 
       var controller = new TodoListsController(context);
 
-      var result = await controller.PutTodoItem(3, new TodoList { Id = 3});
+      var result = await controller.PutTodoList(3, new TodoList { Id = 3});
 
       Assert.IsType<NotFoundResult>(result);
     }
   }
 
   [Fact]
-  public async Task PutTodoItem_WhenCalled_UpdatesTheTodoItem()
+  public async Task PutTodoList_WhenCalled_UpdatesTheTodoList()
   {
     using (var context = new TodoContext(DatabaseContextOptions()))
     {
@@ -100,15 +100,15 @@ public class TodoListsControllerTests
 
       var controller = new TodoListsController(context);
 
-      var todoItem = await context.TodoList.Where(x => x.Id == 2).FirstAsync();
-      var result = await controller.PutTodoItem(todoItem.Id, todoItem);
+      var todoList = await context.TodoList.Where(x => x.Id == 2).FirstAsync();
+      var result = await controller.PutTodoList(todoList.Id, todoList);
 
       Assert.IsType<NoContentResult>(result);
     }
   }
 
   [Fact]
-  public async Task PostTodoItem_WhenCalled_CreatesTodoItem()
+  public async Task PostTodoList_WhenCalled_CreatesTodoList()
   {
     using (var context = new TodoContext(DatabaseContextOptions()))
     {
@@ -116,8 +116,8 @@ public class TodoListsControllerTests
 
       var controller = new TodoListsController(context);
 
-      var todoItem = new TodoList { Name = "Task 3" };
-      var result = await controller.PostTodoItem(todoItem);
+      var todoList = new TodoList { Name = "Task 3" };
+      var result = await controller.PostTodoList(todoList);
 
       Assert.IsType<CreatedAtActionResult>(result.Result);
       Assert.Equal(
@@ -128,7 +128,7 @@ public class TodoListsControllerTests
   }
 
   [Fact]
-  public async Task DeleteTodoItem_WhenCalled_RemovesTodoItem()
+  public async Task DeleteTodoList_WhenCalled_RemovesTodoList()
   {
     using (var context = new TodoContext(DatabaseContextOptions()))
     {
@@ -136,7 +136,7 @@ public class TodoListsControllerTests
 
       var controller = new TodoListsController(context);
 
-      var result = await controller.DeleteTodoItem(2);
+      var result = await controller.DeleteTodoList(2);
 
       Assert.IsType<NoContentResult>(result);
       Assert.Equal(

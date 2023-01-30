@@ -17,7 +17,7 @@ namespace TodoApi.Controllers
 
     // GET: api/todolists
     [HttpGet]
-    public async Task<ActionResult<IList<TodoList>>> GetTodoItems()
+    public async Task<ActionResult<IList<TodoList>>> GetTodoLists()
     {
       if (_context.TodoList == null)
       {
@@ -29,34 +29,34 @@ namespace TodoApi.Controllers
 
     // GET: api/todolists/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<TodoList>> GetTodoItem(long id)
+    public async Task<ActionResult<TodoList>> GetTodoList(long id)
     {
       if (_context.TodoList == null)
       {
         return NotFound();
       }
 
-      var todoItem = await _context.TodoList.FindAsync(id);
+      var todoList = await _context.TodoList.FindAsync(id);
 
-      if (todoItem == null)
+      if (todoList == null)
       {
         return NotFound();
       }
 
-      return Ok(todoItem);
+      return Ok(todoList);
     }
 
     // PUT: api/todolists/5
     // To protect from over-posting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPut("{id}")]
-    public async Task<ActionResult> PutTodoItem(long id, TodoList todoItem)
+    public async Task<ActionResult> PutTodoList(long id, TodoList todoList)
     {
-      if (id != todoItem.Id)
+      if (id != todoList.Id)
       {
         return BadRequest();
       }
 
-      _context.Entry(todoItem).State = EntityState.Modified;
+      _context.Entry(todoList).State = EntityState.Modified;
 
       try
       {
@@ -64,7 +64,7 @@ namespace TodoApi.Controllers
       }
       catch (DbUpdateConcurrencyException)
       {
-        if (!TodoItemExists(id))
+        if (!TodoListExists(id))
         {
           return NotFound();
         }
@@ -80,39 +80,39 @@ namespace TodoApi.Controllers
     // POST: api/todolists
     // To protect from over-posting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPost]
-    public async Task<ActionResult<TodoList>> PostTodoItem(TodoList todoItem)
+    public async Task<ActionResult<TodoList>> PostTodoList(TodoList todoList)
     {
       if (_context.TodoList == null)
       {
-        return Problem("Entity set 'TodoContext.TodoItem'  is null.");
+        return Problem("Entity set 'TodoContext.TodoList'  is null.");
       }
-      _context.TodoList.Add(todoItem);
+      _context.TodoList.Add(todoList);
       await _context.SaveChangesAsync();
 
-      return CreatedAtAction("GetTodoItem", new { id = todoItem.Id }, todoItem);
+      return CreatedAtAction("GetTodoList", new { id = todoList.Id }, todoList);
     }
 
     // DELETE: api/todolists/5
     [HttpDelete("{id}")]
-    public async Task<ActionResult> DeleteTodoItem(long id)
+    public async Task<ActionResult> DeleteTodoList(long id)
     {
       if (_context.TodoList == null)
       {
         return NotFound();
       }
-      var todoItem = await _context.TodoList.FindAsync(id);
-      if (todoItem == null)
+      var todoList = await _context.TodoList.FindAsync(id);
+      if (todoList == null)
       {
         return NotFound();
       }
 
-      _context.TodoList.Remove(todoItem);
+      _context.TodoList.Remove(todoList);
       await _context.SaveChangesAsync();
 
       return NoContent();
     }
 
-    private bool TodoItemExists(long id)
+    private bool TodoListExists(long id)
     {
       return (_context.TodoList?.Any(e => e.Id == id)).GetValueOrDefault();
     }
