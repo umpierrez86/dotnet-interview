@@ -22,6 +22,8 @@ To run tests:
 
 `dotnet test`
 
+Check integration tests at: (https://github.com/crunchloop/interview-tests)
+
 ## Contact
 
 - Martín Fernández (mfernandez@crunchloop.io)
