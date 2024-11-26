@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TodoApi.Dtos;
 using TodoApi.Models;
 
 namespace TodoApi.Controllers
@@ -19,11 +20,6 @@ namespace TodoApi.Controllers
     [HttpGet]
     public async Task<ActionResult<IList<TodoList>>> GetTodoLists()
     {
-      if (_context.TodoList == null)
-      {
-        return NotFound();
-      }
-
       return Ok(await _context.TodoList.ToListAsync());
     }
 
@@ -31,11 +27,6 @@ namespace TodoApi.Controllers
     [HttpGet("{id}")]
     public async Task<ActionResult<TodoList>> GetTodoList(long id)
     {
-      if (_context.TodoList == null)
-      {
-        return NotFound();
-      }
-
       var todoList = await _context.TodoList.FindAsync(id);
 
       if (todoList == null)
@@ -49,43 +40,28 @@ namespace TodoApi.Controllers
     // PUT: api/todolists/5
     // To protect from over-posting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPut("{id}")]
-    public async Task<ActionResult> PutTodoList(long id, TodoList todoList)
+    public async Task<ActionResult> PutTodoList(long id, UpdateTodoList payload)
     {
-      if (id != todoList.Id)
+      var todoList = await _context.TodoList.FindAsync(id);
+
+      if (todoList == null)
       {
-        return BadRequest();
+        return NotFound();
       }
 
-      _context.Entry(todoList).State = EntityState.Modified;
+      todoList.Name = payload.Name;
+      await _context.SaveChangesAsync();
 
-      try
-      {
-        await _context.SaveChangesAsync();
-      }
-      catch (DbUpdateConcurrencyException)
-      {
-        if (!TodoListExists(id))
-        {
-          return NotFound();
-        }
-        else
-        {
-          throw;
-        }
-      }
-
-      return NoContent();
+      return Ok(todoList);
     }
 
     // POST: api/todolists
     // To protect from over-posting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPost]
-    public async Task<ActionResult<TodoList>> PostTodoList(TodoList todoList)
+    public async Task<ActionResult<TodoList>> PostTodoList(CreateTodoList payload)
     {
-      if (_context.TodoList == null)
-      {
-        return Problem("Entity set 'TodoContext.TodoList'  is null.");
-      }
+      var todoList = new TodoList { Name = payload.Name };
+
       _context.TodoList.Add(todoList);
       await _context.SaveChangesAsync();
 
@@ -96,10 +72,6 @@ namespace TodoApi.Controllers
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteTodoList(long id)
     {
-      if (_context.TodoList == null)
-      {
-        return NotFound();
-      }
       var todoList = await _context.TodoList.FindAsync(id);
       if (todoList == null)
       {

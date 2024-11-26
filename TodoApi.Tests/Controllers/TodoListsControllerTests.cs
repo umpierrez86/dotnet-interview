@@ -17,8 +17,8 @@ public class TodoListsControllerTests
 
   private void PopulateDatabaseContext(TodoContext context)
   {
-    context.TodoList.Add(new Models.TodoList { Id = 1, Name = "Task 1" });
-    context.TodoList.Add(new Models.TodoList { Id = 2, Name = "Task 2" });
+    context.TodoList.Add(new TodoList { Id = 1, Name = "Task 1" });
+    context.TodoList.Add(new TodoList { Id = 2, Name = "Task 2" });
     context.SaveChanges();
   }
 
@@ -61,22 +61,6 @@ public class TodoListsControllerTests
   }
 
   [Fact]
-  public async Task PutTodoList_WhenTodoListIdDoesntMatch_ReturnsBadRequest()
-  {
-    using (var context = new TodoContext(DatabaseContextOptions()))
-    {
-      PopulateDatabaseContext(context);
-
-      var controller = new TodoListsController(context);
-
-      var todoList = await context.TodoList.Where(x => x.Id == 2).FirstAsync();
-      var result = await controller.PutTodoList(1, todoList);
-
-      Assert.IsType<BadRequestResult>(result);
-    }
-  }
-
-  [Fact]
   public async Task PutTodoList_WhenTodoListDoesntExist_ReturnsBadRequest()
   {
     using (var context = new TodoContext(DatabaseContextOptions()))
@@ -85,7 +69,7 @@ public class TodoListsControllerTests
 
       var controller = new TodoListsController(context);
 
-      var result = await controller.PutTodoList(3, new TodoList { Id = 3});
+      var result = await controller.PutTodoList(3, new Dtos.UpdateTodoList { Name = "Task 3" });
 
       Assert.IsType<NotFoundResult>(result);
     }
@@ -101,9 +85,9 @@ public class TodoListsControllerTests
       var controller = new TodoListsController(context);
 
       var todoList = await context.TodoList.Where(x => x.Id == 2).FirstAsync();
-      var result = await controller.PutTodoList(todoList.Id, todoList);
+      var result = await controller.PutTodoList(todoList.Id, new Dtos.UpdateTodoList { Name = "Changed Task 2" });
 
-      Assert.IsType<NoContentResult>(result);
+      Assert.IsType<OkObjectResult>(result);
     }
   }
 
@@ -116,8 +100,7 @@ public class TodoListsControllerTests
 
       var controller = new TodoListsController(context);
 
-      var todoList = new TodoList { Name = "Task 3" };
-      var result = await controller.PostTodoList(todoList);
+      var result = await controller.PostTodoList(new Dtos.CreateTodoList { Name = "Task 3" });
 
       Assert.IsType<CreatedAtActionResult>(result.Result);
       Assert.Equal(

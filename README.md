@@ -2,7 +2,12 @@
 
 [![Open in Coder](https://dev.crunchloop.io/open-in-coder.svg)](https://dev.crunchloop.io/templates/fly-containers/workspace?param.Git%20Repository=git@github.com:crunchloop/dotnet-interview.git)
 
-This is a simple Todo List API built in .NET 7. This project is currently being used for .NET full-stack candidates.
+This is a simple Todo List API built in .NET 8. This project is currently being used for .NET full-stack candidates.
+
+## Database
+
+The project comes with a devcontainer that provisions a SQL Server database. If you are not going to use the devcontainer, make sure to provision a SQL Server database and
+update the connection string.
 
 ## Build
 
