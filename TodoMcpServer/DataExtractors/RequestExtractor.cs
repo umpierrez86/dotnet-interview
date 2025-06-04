@@ -25,13 +25,17 @@ public class RequestExtractor<TDto>
     {
         var argsValidation = await _argsValidator.ValidateAsync(arguments, cancellationToken);
         if (!argsValidation.IsValid)
+        {
             throw new ArgumentException(string.Join(", ", argsValidation.Errors.Select(e => e.ErrorMessage)));
+        }
 
         var dto = _dtoFactory(arguments);
 
         var dtoValidation = await _objectValidator.ValidateAsync(dto, cancellationToken);
         if (!dtoValidation.IsValid)
+        {
             throw new ArgumentException(string.Join(", ", dtoValidation.Errors.Select(e => e.ErrorMessage)));
+        }
 
         return dto;
     }

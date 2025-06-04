@@ -54,11 +54,11 @@ public class DeleteItemTool : ToolExecutor
 
     protected override async ValueTask<HttpResponseMessage> Logic(CallToolRequest request, CancellationToken cancellationToken)
     {
-        var toDoList = await ExtractToDoListAsync(request.Arguments, cancellationToken);
+        var toDoList = await ExtractData(request.Arguments, cancellationToken);
         return await DeleteItemAsync(toDoList, cancellationToken);
     }
     
-    private async ValueTask<DeleteItem> ExtractToDoListAsync(IReadOnlyDictionary<string, JsonElement> arguments, CancellationToken cancellationToken)
+    private async ValueTask<DeleteItem> ExtractData(IReadOnlyDictionary<string, JsonElement> arguments, CancellationToken cancellationToken)
     {
         var extractor = new RequestExtractor<DeleteItem>(
             _argsValidator,
