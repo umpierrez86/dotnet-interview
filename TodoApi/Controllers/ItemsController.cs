@@ -5,7 +5,7 @@ using TodoApi.Models;
 
 namespace TodoApi.Controllers;
 
-[Route("api/todoLists/{listId}/items")]
+[Route("/todoLists/{listId}/items")]
 [ApiController]
 public class ItemsController : ControllerBase
 {
@@ -17,15 +17,14 @@ public class ItemsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IList<Item>>> Get(long listId, [FromQuery] string name)
+    public async Task<ActionResult<IList<Item>>> Get(long listId)
     {
         var items = await _context.Items
-            .Where(item => item.TodoListId == listId)
-            .ToListAsync();
+            .FirstOrDefaultAsync(i => i.TodoListId == listId);
 
-        if (!string.IsNullOrEmpty(name))
+        if (items == null)
         {
-            items = items.Where(item => item.Name == name).ToList();
+            return NotFound();
         }
         
         return Ok(items);
@@ -45,7 +44,7 @@ public class ItemsController : ControllerBase
         return Ok(item);
     }
 
-    [HttpPut("{itemId}")]
+    [HttpPatch("{itemId}")]
     public async Task<ActionResult<Item>> PutItem(long listId, long itemId, UpdateItem updateItem)
     {
         var itemToUpdate = await _context.Items
@@ -65,11 +64,24 @@ public class ItemsController : ControllerBase
         {
             itemToUpdate.Description = updateItem.Description;
         }
-
-        if (!itemToUpdate.IsComplete && updateItem.IsComplete)
+        
+        await _context.SaveChangesAsync();
+        
+        return Ok(itemToUpdate);
+    }
+    
+    [HttpPatch("{itemId}/complete")]
+    public async Task<IActionResult> MarkAsComplete(long listId, long itemId)
+    {
+        var itemToUpdate = await _context.Items
+            .FirstOrDefaultAsync(i => i.Id == itemId && i.TodoListId == listId);
+        
+        if (itemToUpdate == null)
         {
-            itemToUpdate.IsComplete = updateItem.IsComplete;
+            return NotFound();
         }
+        
+        itemToUpdate.IsComplete = true;
         
         await _context.SaveChangesAsync();
         
@@ -77,9 +89,8 @@ public class ItemsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Item>> PostItem(long listId, CreateItem createItem)
+    public async Task<ActionResult<Item>> PostItem(long listId, UpdateItem updateItem)
     {
-        Console.WriteLine(listId);
         var listExists = await _context.TodoList.AnyAsync(list => list.Id == listId);
 
         if (!listExists)
@@ -89,8 +100,8 @@ public class ItemsController : ControllerBase
 
         var newItem = new Item
         {
-            Name = createItem.Name,
-            Description = createItem.Description,
+            Name = updateItem.Name,
+            Description = updateItem.Description,
             TodoListId = listId
         };
         
@@ -99,7 +110,7 @@ public class ItemsController : ControllerBase
         
         return CreatedAtAction(
             nameof(GetItem),
-            routeValues: new { listId, itemId = newItem.Id },
+            routeValues: new { listId, id = newItem.Id },
             value: newItem);
     }
 
