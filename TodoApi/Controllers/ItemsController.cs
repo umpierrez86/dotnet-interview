@@ -15,16 +15,17 @@ public class ItemsController : ControllerBase
     {
         _context = context;
     }
-
+    
     [HttpGet]
-    public async Task<ActionResult<IList<Item>>> Get(long listId)
+    public async Task<ActionResult<IList<Item>>> Get(long listId, [FromQuery] string name)
     {
         var items = await _context.Items
-            .FirstOrDefaultAsync(i => i.TodoListId == listId);
+            .Where(item => item.TodoListId == listId)
+            .ToListAsync();
 
-        if (items == null)
+        if (!string.IsNullOrEmpty(name))
         {
-            return NotFound();
+            items = items.Where(item => item.Name == name).ToList();
         }
         
         return Ok(items);
@@ -44,7 +45,7 @@ public class ItemsController : ControllerBase
         return Ok(item);
     }
 
-    [HttpPut("{itemId}")]
+    [HttpPatch("{itemId}")]
     public async Task<ActionResult<Item>> PutItem(long listId, long itemId, UpdateItem updateItem)
     {
         var itemToUpdate = await _context.Items
@@ -64,14 +65,26 @@ public class ItemsController : ControllerBase
         {
             itemToUpdate.Description = updateItem.Description;
         }
-
-        if (updateItem.IsComplete != itemToUpdate.IsComplete)
-        {
-            itemToUpdate.IsComplete = updateItem.IsComplete;
-        }
         
         await _context.SaveChangesAsync();
         
+        return Ok(itemToUpdate);
+    }
+    
+    [HttpPatch("{itemId}/complete")]
+    public async Task<IActionResult> MarkAsComplete(long listId, long itemId)
+    {
+        var itemToUpdate = await _context.Items
+            .FirstOrDefaultAsync(i => i.Id == itemId && i.TodoListId == listId);
+        
+        if (itemToUpdate == null)
+        {
+            return NotFound();
+        }
+        
+        itemToUpdate.IsComplete = true;
+        
+        await _context.SaveChangesAsync();
         return Ok(itemToUpdate);
     }
 
