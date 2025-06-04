@@ -5,7 +5,7 @@ using TodoApi.Models;
 
 namespace TodoApi.Controllers;
 
-[Route("/todoLists/{listId}/items")]
+[Route("api/todoLists/{listId}/items")]
 [ApiController]
 public class ItemsController : ControllerBase
 {
@@ -17,14 +17,15 @@ public class ItemsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IList<Item>>> Get(long listId)
+    public async Task<ActionResult<IList<Item>>> Get(long listId, [FromQuery] string name)
     {
         var items = await _context.Items
-            .FirstOrDefaultAsync(i => i.TodoListId == listId);
+            .Where(item => item.TodoListId == listId)
+            .ToListAsync();
 
-        if (items == null)
+        if (!string.IsNullOrEmpty(name))
         {
-            return NotFound();
+            items = items.Where(item => item.Name == name).ToList();
         }
         
         return Ok(items);
@@ -65,7 +66,7 @@ public class ItemsController : ControllerBase
             itemToUpdate.Description = updateItem.Description;
         }
 
-        if (updateItem.IsComplete != itemToUpdate.IsComplete)
+        if (!itemToUpdate.IsComplete && updateItem.IsComplete)
         {
             itemToUpdate.IsComplete = updateItem.IsComplete;
         }
@@ -76,8 +77,9 @@ public class ItemsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Item>> PostItem(long listId, UpdateItem updateItem)
+    public async Task<ActionResult<Item>> PostItem(long listId, CreateItem createItem)
     {
+        Console.WriteLine(listId);
         var listExists = await _context.TodoList.AnyAsync(list => list.Id == listId);
 
         if (!listExists)
@@ -87,8 +89,8 @@ public class ItemsController : ControllerBase
 
         var newItem = new Item
         {
-            Name = updateItem.Name,
-            Description = updateItem.Description,
+            Name = createItem.Name,
+            Description = createItem.Description,
             TodoListId = listId
         };
         
@@ -97,7 +99,7 @@ public class ItemsController : ControllerBase
         
         return CreatedAtAction(
             nameof(GetItem),
-            routeValues: new { listId, id = newItem.Id },
+            routeValues: new { listId, itemId = newItem.Id },
             value: newItem);
     }
 

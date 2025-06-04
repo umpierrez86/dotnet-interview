@@ -20,6 +20,35 @@ namespace TodoApi.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("TodoApi.Models.Item", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsComplete")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("TodoListId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TodoListId");
+
+                    b.ToTable("Items");
+                });
+
             modelBuilder.Entity("TodoApi.Models.TodoList", b =>
                 {
                     b.Property<long>("Id")
@@ -35,6 +64,22 @@ namespace TodoApi.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("TodoList");
+                });
+
+            modelBuilder.Entity("TodoApi.Models.Item", b =>
+                {
+                    b.HasOne("TodoApi.Models.TodoList", "TodoList")
+                        .WithMany("Items")
+                        .HasForeignKey("TodoListId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TodoList");
+                });
+
+            modelBuilder.Entity("TodoApi.Models.TodoList", b =>
+                {
+                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

@@ -18,9 +18,18 @@ namespace TodoApi.Controllers
 
         // GET: api/todolists
         [HttpGet]
-        public async Task<ActionResult<IList<TodoList>>> GetTodoLists()
+        public async Task<ActionResult<IList<TodoList>>> GetTodoLists([FromQuery] string? name)
         {
-            return Ok(await _context.TodoList.ToListAsync());
+            var todoLists = await _context.TodoList
+                .Include(list => list.Items)
+                .ToListAsync();;
+            
+            if (!string.IsNullOrEmpty(name))
+            {
+                todoLists = todoLists.Where(list => list.Name == name).ToList();
+            }
+            
+            return Ok(todoLists);
         }
 
         // GET: api/todolists/5

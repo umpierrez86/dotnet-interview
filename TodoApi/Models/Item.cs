@@ -7,5 +7,4 @@ public class Item
     public required string Description { get; set; }
     public bool IsComplete { get; set; } = false;
     public long TodoListId { get; set; }
-    public TodoList? TodoList { get; set; }
 }
