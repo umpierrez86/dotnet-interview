@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Moq;
+using Todo.ApplicationCore.Interfaces;
 using TodoApi.Controllers;
 using TodoApi.Dtos;
 using TodoApi.Models;
@@ -8,92 +10,87 @@ namespace TodoApi.Tests;
 
 public class ItemsControllerTest
 {
-    private DbContextOptions<TodoContext> DatabaseContextOptions()
-    {
-        return new DbContextOptionsBuilder<TodoContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-    }
+    private Mock<IItemsService> _mockService;
+    private ItemsController _controller;
 
-    private void PopulateDatabaseContext(TodoContext context)
-    {
-        context.TodoList.Add(new TodoList { Id = 1, Name = "List 1" });
-        context.Items.Add(new Item { Id = 1, Name = "Item 1", Description = "Desc 1", TodoListId = 1 });
-        context.Items.Add(new Item { Id = 2, Name = "Item 2", Description = "Desc 2", TodoListId = 1 });
-        context.SaveChanges();
-    }
-    
     [Fact]
     public async Task GetItems_WhenCalled_ReturnsItems()
     {
-        using var context = new TodoContext(DatabaseContextOptions());
-        PopulateDatabaseContext(context);
-        var controller = new ItemsController(context);
+        _mockService = new Mock<IItemsService>();
+        _mockService.Setup(s => s.Get(1, ""))
+            .ReturnsAsync(new List<ReadItem>
+            {
+                new ReadItem { Id = 1, Name = "Item 1", Description = "Desc 1" },
+                new ReadItem { Id = 2, Name = "Item 2", Description = "Desc 2" }
+            });
 
-        var result = await controller.Get(1, "");
+        _controller = new ItemsController(_mockService.Object);
+        var result = await _controller.Get(1, "");
 
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
-        var items = Assert.IsAssignableFrom<IList<Item>>(okResult.Value);
+        var items = Assert.IsAssignableFrom<IList<ReadItem>>(okResult.Value);
         Assert.Equal(2, items.Count);
     }
-    
+
     [Fact]
     public async Task GetItem_WhenExists_ReturnsItem()
     {
-        using var context = new TodoContext(DatabaseContextOptions());
-        PopulateDatabaseContext(context);
-        var controller = new ItemsController(context);
+        _mockService = new Mock<IItemsService>();
+        _mockService.Setup(s => s.GetById(1, 1))
+            .ReturnsAsync(new ReadItem { Id = 1, Name = "Item 1", Description = "Desc 1" });
 
-        var result = await controller.GetItem(1, 1);
+        _controller = new ItemsController(_mockService.Object);
+        var result = await _controller.GetItem(1, 1);
 
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
-        var item = Assert.IsType<Item>(okResult.Value);
+        var item = Assert.IsType<ReadItem>(okResult.Value);
         Assert.Equal("Item 1", item.Name);
     }
-    
+
     [Fact]
     public async Task PostItem_WhenCalled_CreatesItem()
     {
-        using var context = new TodoContext(DatabaseContextOptions());
-        PopulateDatabaseContext(context);
-        var controller = new ItemsController(context);
+        _mockService = new Mock<IItemsService>();
+        var createdItem = new ReadItem { Id = 3, Name = "New Item", Description = "New Desc" };
 
-        var createDto = new CreateItem { Name = "New Item", Description = "New Desc" };
+        _mockService.Setup(s => s.Create(1, It.IsAny<CreateItem>()))
+            .ReturnsAsync(createdItem);
 
-        var result = await controller.PostItem(1, createDto);
+        _controller = new ItemsController(_mockService.Object);
+        var result = await _controller.PostItem(1, new CreateItem { Name = "New Item", Description = "New Desc" });
 
         var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);
-        var createdItem = Assert.IsType<Item>(createdResult.Value);
-        Assert.Equal("New Item", createdItem.Name);
-        Assert.Equal(3, context.Items.Count());
+        var item = Assert.IsType<ReadItem>(createdResult.Value);
+        Assert.Equal("New Item", item.Name);
     }
-    
+
     [Fact]
     public async Task PutItem_WhenCalled_UpdatesItem()
     {
-        using var context = new TodoContext(DatabaseContextOptions());
-        PopulateDatabaseContext(context);
-        var controller = new ItemsController(context);
+        _mockService = new Mock<IItemsService>();
+        var updatedItem = new ReadItem { Id = 1, Name = "Updated", Description = "Updated desc", isComplete = true };
 
-        var updateDto = new UpdateItem { Name = "Updated", Description = "Updated desc", IsComplete = true };
+        _mockService.Setup(s => s.Update(1, 1, It.IsAny<UpdateItem>()))
+            .ReturnsAsync(updatedItem);
 
-        var result = await controller.PutItem(1, 1, updateDto);
-        
-        var updatedItem = await context.Items.FirstOrDefaultAsync(i => i.Id == 1);
-        Assert.IsType<OkObjectResult>(result.Result);
-        Assert.Equal(updatedItem.Description, updateDto.Description);
+        _controller = new ItemsController(_mockService.Object);
+        var result = await _controller.PutItem(1, 1,
+            new UpdateItem { Name = "Updated", Description = "Updated desc", IsComplete = true });
+
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var item = Assert.IsType<ReadItem>(okResult.Value);
+        Assert.Equal("Updated", item.Name);
     }
-    
+
     [Fact]
     public async Task DeleteItem_WhenCalled_DeletesItem()
     {
-        using var context = new TodoContext(DatabaseContextOptions());
-        PopulateDatabaseContext(context);
-        var controller = new ItemsController(context);
+        _mockService = new Mock<IItemsService>();
+        _mockService.Setup(s => s.Delete(1, 1)).Returns(Task.CompletedTask);
 
-        var result = await controller.DeleteItem(1, 1);
+        _controller = new ItemsController(_mockService.Object);
+        var result = await _controller.DeleteItem(1, 1);
 
-        Assert.IsType<NoContentResult>(result.Result);
-        Assert.Single(context.Items);
+        Assert.IsType<NoContentResult>(result);
     }
 }

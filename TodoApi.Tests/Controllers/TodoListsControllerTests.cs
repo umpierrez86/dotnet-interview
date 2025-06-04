@@ -1,125 +1,113 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Moq;
+using Todo.ApplicationCore.Interfaces;
 using TodoApi.Controllers;
-using TodoApi.Models;
+using TodoApi.Dtos;
 
-namespace TodoApi.Tests;
-
-#nullable disable
-public class TodoListsControllerTests
+namespace TodoApi.Tests
 {
-    private DbContextOptions<TodoContext> DatabaseContextOptions()
+    public class TodoListsControllerTests
     {
-        return new DbContextOptionsBuilder<TodoContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-    }
+        private Mock<ITodoListsService> _serviceMock;
+        private TodoListsController _controller;
 
-    private void PopulateDatabaseContext(TodoContext context)
-    {
-        context.TodoList.Add(new TodoList { Id = 1, Name = "Task 1" });
-        context.TodoList.Add(new TodoList { Id = 2, Name = "Task 2" });
-        context.SaveChanges();
-    }
-
-    [Fact]
-    public async Task GetTodoList_WhenCalled_ReturnsTodoListList()
-    {
-        using (var context = new TodoContext(DatabaseContextOptions()))
+        [Fact]
+        public async Task GetTodoList_WhenCalled_ReturnsTodoListList()
         {
-            PopulateDatabaseContext(context);
+            _serviceMock = new Mock<ITodoListsService>();
+            _controller = new TodoListsController(_serviceMock.Object);
 
-            var controller = new TodoListsController(context);
+            var todoLists = new List<ReadTodoList>
+            {
+                new ReadTodoList { Id = 1, Name = "Task 1", Items = new() },
+                new ReadTodoList { Id = 2, Name = "Task 2", Items = new() }
+            };
+            _serviceMock.Setup(s => s.Get("")).ReturnsAsync(todoLists);
 
-            var result = await controller.GetTodoLists("");
+            var result = await _controller.GetTodoLists("");
 
-            Assert.IsType<OkObjectResult>(result.Result);
-            Assert.Equal(2, ((result.Result as OkObjectResult).Value as IList<TodoList>).Count);
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var lists = Assert.IsAssignableFrom<IList<ReadTodoList>>(okResult.Value);
+            Assert.Equal(2, lists.Count);
         }
-    }
 
-    [Fact]
-    public async Task GetTodoList_WhenCalled_ReturnsTodoListById()
-    {
-        using (var context = new TodoContext(DatabaseContextOptions()))
+        [Fact]
+        public async Task GetTodoList_WhenCalled_ReturnsTodoListById()
         {
-            PopulateDatabaseContext(context);
+            _serviceMock = new Mock<ITodoListsService>();
+            _controller = new TodoListsController(_serviceMock.Object);
 
-            var controller = new TodoListsController(context);
+            var todoList = new ReadTodoList { Id = 1, Name = "Task 1", Items = new() };
 
-            var result = await controller.GetTodoList(1);
+            _serviceMock.Setup(s => s.GetById(1)).ReturnsAsync(todoList);
 
-            Assert.IsType<OkObjectResult>(result.Result);
-            Assert.Equal(1, ((result.Result as OkObjectResult).Value as TodoList).Id);
+            var result = await _controller.GetTodoList(1);
+
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var returnedList = Assert.IsType<ReadTodoList>(okResult.Value);
+            Assert.Equal(1, returnedList.Id);
         }
-    }
 
-    [Fact]
-    public async Task PutTodoList_WhenTodoListDoesntExist_ReturnsBadRequest()
-    {
-        using (var context = new TodoContext(DatabaseContextOptions()))
+        [Fact]
+        public async Task PutTodoList_WhenTodoListDoesntExist_ReturnsNotFound()
         {
-            PopulateDatabaseContext(context);
+            _serviceMock = new Mock<ITodoListsService>();
+            _controller = new TodoListsController(_serviceMock.Object);
 
-            var controller = new TodoListsController(context);
+            _serviceMock.Setup(s => s.Update(It.IsAny<long>(), It.IsAny<UpdateTodoList>()))
+                .ThrowsAsync(new ArgumentException());
 
-            var result = await controller.PutTodoList(
-                3,
-                new Dtos.UpdateTodoList { Name = "Task 3" }
-            );
+            var result = await _controller.PutTodoList(3, new UpdateTodoList { Name = "Task 3" });
 
             Assert.IsType<NotFoundResult>(result);
         }
-    }
 
-    [Fact]
-    public async Task PutTodoList_WhenCalled_UpdatesTheTodoList()
-    {
-        using (var context = new TodoContext(DatabaseContextOptions()))
+        [Fact]
+        public async Task PutTodoList_WhenCalled_UpdatesTheTodoList()
         {
-            PopulateDatabaseContext(context);
+            _serviceMock = new Mock<ITodoListsService>();
+            _controller = new TodoListsController(_serviceMock.Object);
 
-            var controller = new TodoListsController(context);
+            var updatedList = new ReadTodoList { Id = 2, Name = "Changed Task 2", Items = new() };
 
-            var todoList = await context.TodoList.Where(x => x.Id == 2).FirstAsync();
-            var result = await controller.PutTodoList(
-                todoList.Id,
-                new Dtos.UpdateTodoList { Name = "Changed Task 2" }
-            );
+            _serviceMock.Setup(s => s.Update(2, It.IsAny<UpdateTodoList>())).ReturnsAsync(updatedList);
 
-            Assert.IsType<OkObjectResult>(result);
+            var result = await _controller.PutTodoList(2, new UpdateTodoList { Name = "Changed Task 2" });
+
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            var returnedList = Assert.IsType<ReadTodoList>(okResult.Value);
+            Assert.Equal("Changed Task 2", returnedList.Name);
         }
-    }
 
-    [Fact]
-    public async Task PostTodoList_WhenCalled_CreatesTodoList()
-    {
-        using (var context = new TodoContext(DatabaseContextOptions()))
+        [Fact]
+        public async Task PostTodoList_WhenCalled_CreatesTodoList()
         {
-            PopulateDatabaseContext(context);
+            _serviceMock = new Mock<ITodoListsService>();
+            _controller = new TodoListsController(_serviceMock.Object);
 
-            var controller = new TodoListsController(context);
+            var createdList = new ReadTodoList { Id = 3, Name = "Task 3", Items = new() };
 
-            var result = await controller.PostTodoList(new Dtos.CreateTodoList { Name = "Task 3" });
+            _serviceMock.Setup(s => s.Create(It.IsAny<CreateTodoList>())).ReturnsAsync(createdList);
 
-            Assert.IsType<CreatedAtActionResult>(result.Result);
-            Assert.Equal(3, context.TodoList.Count());
+            var result = await _controller.PostTodoList(new CreateTodoList { Name = "Task 3" });
+
+            var createdAtResult = Assert.IsType<CreatedAtActionResult>(result.Result);
+            var returnedList = Assert.IsType<ReadTodoList>(createdAtResult.Value);
+            Assert.Equal(3, returnedList.Id);
         }
-    }
 
-    [Fact]
-    public async Task DeleteTodoList_WhenCalled_RemovesTodoList()
-    {
-        using (var context = new TodoContext(DatabaseContextOptions()))
+        [Fact]
+        public async Task DeleteTodoList_WhenCalled_RemovesTodoList()
         {
-            PopulateDatabaseContext(context);
+            _serviceMock = new Mock<ITodoListsService>();
+            _controller = new TodoListsController(_serviceMock.Object);
 
-            var controller = new TodoListsController(context);
+            _serviceMock.Setup(s => s.Delete(2)).Returns(Task.CompletedTask);
 
-            var result = await controller.DeleteTodoList(2);
+            var result = await _controller.DeleteTodoList(2);
 
             Assert.IsType<NoContentResult>(result);
-            Assert.Equal(1, context.TodoList.Count());
         }
     }
 }
+
