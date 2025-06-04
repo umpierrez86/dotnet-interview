@@ -89,7 +89,7 @@ public class ItemsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Item>> PostItem(long listId, UpdateItem updateItem)
+    public async Task<ActionResult<Item>> PostItem(long listId, CreateItem createItem)
     {
         var listExists = await _context.TodoList.AnyAsync(list => list.Id == listId);
 
@@ -100,8 +100,8 @@ public class ItemsController : ControllerBase
 
         var newItem = new Item
         {
-            Name = updateItem.Name,
-            Description = updateItem.Description,
+            Name = createItem.Name,
+            Description = createItem.Description,
             TodoListId = listId
         };
         
