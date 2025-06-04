@@ -49,13 +49,9 @@ public class UpdateItemTool : ToolExecutor
                      "description": {
                           "type": "string",
                           "description": "The new description for the item. Empty is the user doesn't specify a new description."
-                     },
-                     "isComplete": {
-                          "type": "boolean",
-                          "description": "Flag indicating whether the item is complete. Empty is the user doesn't specify"
                      }
                  },
-                 "required": ["name", "listName", "newName", "description", "isComplete"]
+                 "required": ["name", "listName", "newName", "description"]
              }
              """)
         };
@@ -81,7 +77,6 @@ public class UpdateItemTool : ToolExecutor
                 NewName = args["newName"].GetString()!,
                 Description = args["description"].GetString()!,
                 ListName = args["listName"].GetString()!,
-                Completed = args["isComplete"].GetBoolean()!
             }
         );
         return await extractor.ExtractAsync(arguments, cancellationToken);
@@ -105,7 +100,7 @@ public class UpdateItemTool : ToolExecutor
             "application/json"
         );
 
-        return await _client.PutAsync($"http://localhost:5083/api/todoLists/{listId}/items/{itemId}", 
+        return await _client.PatchAsync($"http://localhost:5083/api/todoLists/{listId}/items/{itemId}", 
             putContent, cancellationToken);
     }
 }

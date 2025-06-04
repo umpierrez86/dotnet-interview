@@ -69,15 +69,15 @@ public class ItemsControllerTest
     }
     
     [Fact]
-    public async Task PutItem_WhenCalled_UpdatesItem()
+    public async Task PatchItem_WhenCalled_UpdatesItem()
     {
         using var context = new TodoContext(DatabaseContextOptions());
         PopulateDatabaseContext(context);
         var controller = new ItemsController(context);
 
-        var updateDto = new UpdateItem { Name = "Updated", Description = "Updated desc", IsComplete = true };
+        var updateDto = new UpdateItem { Name = "Updated", Description = "Updated desc" };
 
-        var result = await controller.PutItem(1, 1, updateDto);
+        var result = await controller.PatchItem(1, 1, updateDto);
         
         var updatedItem = await context.Items.FirstOrDefaultAsync(i => i.Id == 1);
         Assert.IsType<OkObjectResult>(result.Result);

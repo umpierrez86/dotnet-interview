@@ -5,7 +5,7 @@ using TodoApi.Models;
 
 namespace TodoApi.Controllers;
 
-[Route("/todoLists/{listId}/items")]
+[Route("api/todoLists/{listId}/items")]
 [ApiController]
 public class ItemsController : ControllerBase
 {
@@ -17,18 +17,20 @@ public class ItemsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IList<Item>>> Get(long listId)
+    public async Task<ActionResult<IList<Item>>> Get(long listId, [FromQuery] string name)
     {
         var items = await _context.Items
-            .FirstOrDefaultAsync(i => i.TodoListId == listId);
+            .Where(item => item.TodoListId == listId)
+            .ToListAsync();
 
-        if (items == null)
+        if (!string.IsNullOrEmpty(name))
         {
-            return NotFound();
+            items = items.Where(item => item.Name == name).ToList();
         }
         
         return Ok(items);
     }
+
 
     [HttpGet("{itemId}")]
     public async Task<ActionResult<IList<Item>>> GetItem(long listId, long itemId)
@@ -45,7 +47,7 @@ public class ItemsController : ControllerBase
     }
 
     [HttpPatch("{itemId}")]
-    public async Task<ActionResult<Item>> PutItem(long listId, long itemId, UpdateItem updateItem)
+    public async Task<ActionResult<Item>> PatchItem(long listId, long itemId, UpdateItem updateItem)
     {
         var itemToUpdate = await _context.Items
             .FirstOrDefaultAsync(i => i.Id == itemId && i.TodoListId == listId);
@@ -110,7 +112,7 @@ public class ItemsController : ControllerBase
         
         return CreatedAtAction(
             nameof(GetItem),
-            routeValues: new { listId, id = newItem.Id },
+            routeValues: new { listId, itemId = newItem.Id },
             value: newItem);
     }
 

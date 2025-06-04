@@ -25,6 +25,7 @@ builder.Services.AddHttpClient<DeleteToDoListTool>();
 builder.Services.AddHttpClient<CreateItemTool>();
 builder.Services.AddHttpClient<UpdateItemTool>();
 builder.Services.AddHttpClient<DeleteItemTool>();
+builder.Services.AddHttpClient<CompleteItemTool>();
 
 builder.Services.AddTransient<ToolExecutor, CreateToDoListTool>();
 builder.Services.AddTransient<ToolExecutor, GetToDoListsTool>();
@@ -34,6 +35,7 @@ builder.Services.AddTransient<ToolExecutor, DeleteToDoListTool>();
 builder.Services.AddTransient<ToolExecutor, CreateItemTool>();
 builder.Services.AddTransient<ToolExecutor, UpdateItemTool>();
 builder.Services.AddTransient<ToolExecutor, DeleteItemTool>();
+builder.Services.AddTransient<ToolExecutor, CompleteItemTool>();
 
 var host = builder.Build();
 

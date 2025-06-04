@@ -96,6 +96,5 @@ public class CreateItemTool : ToolExecutor
 
         return await _client.PostAsync($"http://localhost:5083/api/todoLists/{listId}/items", 
             createContent, cancellationToken);
-
     }
 }
