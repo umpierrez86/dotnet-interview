@@ -55,11 +55,11 @@ public class UpdateToDoListTool : ToolExecutor
     
     protected override async ValueTask<HttpResponseMessage> Logic(CallToolRequest request, CancellationToken cancellationToken)
     {
-        var toDoList = await ExtractToDoListAsync(request.Arguments, cancellationToken);
+        var toDoList = await ExtractData(request.Arguments, cancellationToken);
         return await UpdateToDoListAsync(toDoList, cancellationToken);
     }
     
-    private async ValueTask<UpdateToDoList> ExtractToDoListAsync(IReadOnlyDictionary<string, JsonElement> arguments, CancellationToken cancellationToken)
+    private async ValueTask<UpdateToDoList> ExtractData(IReadOnlyDictionary<string, JsonElement> arguments, CancellationToken cancellationToken)
     {
         var extractor = new RequestExtractor<UpdateToDoList>(
             _argsValidator,
