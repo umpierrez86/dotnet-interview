@@ -18,7 +18,7 @@ public class CompleteItemToolTests
         var lookupMock = new Mock<ITodoLookupService>();
         lookupMock.Setup(x => x.GetListIdByNameAsync("Groceries", It.IsAny<CancellationToken>()))
                   .ReturnsAsync(1);
-        lookupMock.Setup(x => x.GetItemIdByNameAsync(1, "Milk", It.IsAny<CancellationToken>()))
+        lookupMock.Setup(x => x.GetItemIdByNameAsync(1, "Yerba", It.IsAny<CancellationToken>()))
                   .ReturnsAsync(42);
 
         var tool = new CompleteItemTool(httpClient, lookupMock.Object);
@@ -27,7 +27,7 @@ public class CompleteItemToolTests
         {
             Arguments = new Dictionary<string, JsonElement>
             {
-                { "name", JsonDocument.Parse("\"Milk\"").RootElement },
+                { "name", JsonDocument.Parse("\"Yerba\"").RootElement },
                 { "listName", JsonDocument.Parse("\"Groceries\"").RootElement }
             }
         };

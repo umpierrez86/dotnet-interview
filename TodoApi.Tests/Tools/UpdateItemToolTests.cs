@@ -23,7 +23,7 @@ public class UpdateItemToolTests
             .Setup(x => x.GetListIdByNameAsync("Groceries", It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
         lookupServiceMock
-            .Setup(x => x.GetItemIdByNameAsync(1, "Milk", It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetItemIdByNameAsync(1, "Yerba", It.IsAny<CancellationToken>()))
             .ReturnsAsync(101);
 
         var tool = new UpdateItemTool(httpClient, lookupServiceMock.Object);
@@ -31,11 +31,10 @@ public class UpdateItemToolTests
         {
             Arguments = new Dictionary<string, JsonElement>
             {
-                { "name", JsonDocument.Parse("\"Milk\"").RootElement },
+                { "name", JsonDocument.Parse("\"Yerba\"").RootElement },
                 { "listName", JsonDocument.Parse("\"Groceries\"").RootElement },
-                { "newName", JsonDocument.Parse("\"Almond Milk\"").RootElement },
-                { "description", JsonDocument.Parse("\"Lactose free\"").RootElement },
-                { "isComplete", JsonDocument.Parse("true").RootElement }
+                { "newName", JsonDocument.Parse("\"Butter\"").RootElement },
+                { "description", JsonDocument.Parse("\"Butter instead for the cake\"").RootElement }
             }
         };
 
@@ -130,7 +129,7 @@ public class UpdateItemToolTests
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
-                ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Put),
+                ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Patch),
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(response);
 
