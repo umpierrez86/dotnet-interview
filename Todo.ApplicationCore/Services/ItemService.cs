@@ -77,11 +77,6 @@ public class ItemService : IItemsService
         {
             itemToUpdate.Description = updateItem.Description;
         }
-
-        if (!itemToUpdate.IsComplete && updateItem.IsComplete)
-        {
-            itemToUpdate.IsComplete = updateItem.IsComplete;
-        }
         
         var result = await _repository.Update(itemToUpdate);
         return CreateReadItem(result);

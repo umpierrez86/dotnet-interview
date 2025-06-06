@@ -83,7 +83,7 @@ public class ItemsControllerTest
 
         _controller = new ItemsController(_mockService.Object);
         var result = await _controller.PutItem(1, 1,
-            new UpdateItem { Name = "Updated", Description = "Updated desc", IsComplete = true });
+            new UpdateItem { Name = "Updated", Description = "Updated desc" });
 
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
         var item = Assert.IsType<ReadItem>(okResult.Value);
