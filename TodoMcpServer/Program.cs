@@ -5,6 +5,7 @@ using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 using TodoMcpServer.CallToolTypes;
+using TodoMcpServer.Configuration;
 using TodoMcpServer.Interfaces;
 using TodoMcpServer.Services;
 using TodoMcpServer.Tools;
@@ -42,40 +43,8 @@ var host = builder.Build();
 await using var scope = host.Services.CreateAsyncScope();
 var tools = scope.ServiceProvider.GetServices<ToolExecutor>().ToList();
 
+var optionsFactory = new McpServerOptionsFactory();
+var mcpOptions = optionsFactory.Create(tools);
 
-
-McpServerOptions options = new()
-{
-    ServerInfo = new Implementation { Name = "MyMcpServer", Version = "1.0.0" },
-    Capabilities = new ServerCapabilities
-    {
-        Tools = new ToolsCapability
-        {
-            ListToolsHandler = (_, _) =>
-                ValueTask.FromResult(new ListToolsResult
-                {
-                    Tools = tools.Select(t => t.GetToolDefinition()).ToList()
-                }),
-
-            CallToolHandler = async (request, cancellationToken) =>
-            {
-                CallToolRequest toolRequest = new CallToolRequest
-                {
-                    Name = request.Params?.Name,
-                    Arguments = request.Params?.Arguments
-                };
-                
-                var tool = tools.FirstOrDefault(t => t.Name == toolRequest.Name);
-                if (tool is null)
-                {
-                    throw new McpException($"Unknown tool: '{request.Params?.Name}'");
-                }
-                
-                return await tool.HandleAsync(toolRequest, cancellationToken);
-            }
-        }
-    }
-};
-
-await using IMcpServer server = McpServerFactory.Create(new StdioServerTransport("MyMcpServer"), options);
+await using IMcpServer server = McpServerFactory.Create(new StdioServerTransport("MyMcpServer"), mcpOptions);
 await server.RunAsync();
