@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Todo.ApplicationCore.Interfaces;
 using TodoApi.Dtos;
 using TodoApi.Models;
 
@@ -9,41 +10,34 @@ namespace TodoApi.Controllers
     [ApiController]
     public class TodoListsController : ControllerBase
     {
-        private readonly TodoContext _context;
+        private readonly ITodoListsService _listService;
 
-        public TodoListsController(TodoContext context)
+        public TodoListsController(ITodoListsService listService)
         {
-            _context = context;
+            _listService = listService;
         }
 
         // GET: api/todolists
         [HttpGet]
         public async Task<ActionResult<IList<TodoList>>> GetTodoLists([FromQuery] string? name)
         {
-            var todoLists = await _context.TodoList
-                .Include(list => list.Items)
-                .ToListAsync();;
-            
-            if (!string.IsNullOrEmpty(name))
-            {
-                todoLists = todoLists.Where(list => list.Name == name).ToList();
-            }
-            
-            return Ok(todoLists);
+            var result = await _listService.Get(name);
+            return Ok(result);
         }
 
         // GET: api/todolists/5
         [HttpGet("{id}")]
         public async Task<ActionResult<TodoList>> GetTodoList(long id)
         {
-            var todoList = await _context.TodoList.FindAsync(id);
-
-            if (todoList == null)
+            try
+            {
+                var result = await _listService.GetById(id);
+                return Ok(result);
+            }
+            catch(ArgumentException)
             {
                 return NotFound();
             }
-
-            return Ok(todoList);
         }
 
         // PUT: api/todolists/5
@@ -51,17 +45,15 @@ namespace TodoApi.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> PutTodoList(long id, UpdateTodoList payload)
         {
-            var todoList = await _context.TodoList.FindAsync(id);
-
-            if (todoList == null)
+            try
+            {
+                var result = await _listService.Update(id, payload);
+                return Ok(result);
+            }
+            catch(ArgumentException)
             {
                 return NotFound();
             }
-
-            todoList.Name = payload.Name;
-            await _context.SaveChangesAsync();
-
-            return Ok(todoList);
         }
 
         // POST: api/todolists
@@ -69,33 +61,29 @@ namespace TodoApi.Controllers
         [HttpPost]
         public async Task<ActionResult<TodoList>> PostTodoList(CreateTodoList payload)
         {
-            var todoList = new TodoList { Name = payload.Name };
+            var result = await _listService.Create(payload); 
+            return CreatedAtAction("GetTodoList", new { id = result.Id }, result);
 
-            _context.TodoList.Add(todoList);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetTodoList", new { id = todoList.Id }, todoList);
         }
 
         // DELETE: api/todolists/5
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteTodoList(long id)
         {
-            var todoList = await _context.TodoList.FindAsync(id);
-            if (todoList == null)
+            try
+            {
+                await _listService.Delete(id);
+                return NoContent();
+            }
+            catch(ArgumentException)
             {
                 return NotFound();
             }
-
-            _context.TodoList.Remove(todoList);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
         }
 
-        private bool TodoListExists(long id)
+        private async Task<bool> TodoListExists(long id)
         {
-            return (_context.TodoList?.Any(e => e.Id == id)).GetValueOrDefault();
+            return await _listService.Exists(id);
         }
     }
 }

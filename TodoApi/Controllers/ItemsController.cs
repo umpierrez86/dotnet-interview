@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Todo.ApplicationCore.Interfaces;
 using TodoApi.Dtos;
 using TodoApi.Models;
 
@@ -9,127 +10,79 @@ namespace TodoApi.Controllers;
 [ApiController]
 public class ItemsController : ControllerBase
 {
-    private readonly TodoContext _context;
-
-    public ItemsController(TodoContext context)
+    private IItemsService _itemsService;
+        
+    public ItemsController(IItemsService itemsService)
     {
-        _context = context;
+        _itemsService = itemsService;
     }
 
     [HttpGet]
-    public async Task<ActionResult<IList<Item>>> Get(long listId, [FromQuery] string name)
+    public async Task<ActionResult<IList<ReadItem>>> Get(long listId, [FromQuery] string name)
     {
-        var items = await _context.Items
-            .Where(item => item.TodoListId == listId)
-            .ToListAsync();
-
-        if (!string.IsNullOrEmpty(name))
-        {
-            items = items.Where(item => item.Name == name).ToList();
-        }
+        var items = await _itemsService.Get(listId, name);
         
         return Ok(items);
     }
 
-
     [HttpGet("{itemId}")]
-    public async Task<ActionResult<IList<Item>>> GetItem(long listId, long itemId)
+    public async Task<ActionResult<IList<ReadItem>>> GetItem(long listId, long itemId)
     {
-        var item = await _context.Items
-            .FirstOrDefaultAsync(i => i.Id == itemId && i.TodoListId == listId);
-
-        if (item == null)
+        try
+        {
+            var item = await _itemsService.GetById(listId, itemId);
+            return Ok(item);
+        }
+        catch(ArgumentNullException)
         {
             return NotFound();
         }
-        
-        return Ok(item);
     }
 
-    [HttpPatch("{itemId}")]
-    public async Task<ActionResult<Item>> PatchItem(long listId, long itemId, UpdateItem updateItem)
+    [HttpPut("{itemId}")]
+    public async Task<ActionResult<ReadItem>> PutItem(long listId, long itemId, UpdateItem updateItem)
     {
-        var itemToUpdate = await _context.Items
-            .FirstOrDefaultAsync(i => i.Id == itemId && i.TodoListId == listId);
-
-        if (itemToUpdate == null)
+        try
+        {
+            var item = await _itemsService.Update(listId, itemId, updateItem);
+            return Ok(item);
+        }
+        catch(ArgumentNullException)
         {
             return NotFound();
         }
-        
-        if (!string.IsNullOrEmpty(updateItem.Name) && updateItem.Name != itemToUpdate.Name)
-        {
-            itemToUpdate.Name = updateItem.Name;
-        }
-
-        if (!string.IsNullOrEmpty(updateItem.Description) && updateItem.Description != itemToUpdate.Description)
-        {
-            itemToUpdate.Description = updateItem.Description;
-        }
-        
-        await _context.SaveChangesAsync();
-        
-        return Ok(itemToUpdate);
-    }
-    
-    [HttpPatch("{itemId}/complete")]
-    public async Task<IActionResult> MarkAsComplete(long listId, long itemId)
-    {
-        var itemToUpdate = await _context.Items
-            .FirstOrDefaultAsync(i => i.Id == itemId && i.TodoListId == listId);
-        
-        if (itemToUpdate == null)
-        {
-            return NotFound();
-        }
-        
-        itemToUpdate.IsComplete = true;
-        
-        await _context.SaveChangesAsync();
-        
-        return Ok(itemToUpdate);
     }
 
     [HttpPost]
-    public async Task<ActionResult<Item>> PostItem(long listId, CreateItem createItem)
+    public async Task<ActionResult<ReadItem>> PostItem(long listId, CreateItem createItem)
     {
-        var listExists = await _context.TodoList.AnyAsync(list => list.Id == listId);
-
-        if (!listExists)
+        try
+        {
+            var item = await _itemsService.Create(listId, createItem);
+            
+            return CreatedAtAction(
+                nameof(GetItem),
+                routeValues: new { listId, itemId = item.Id },
+                value: item);
+        }
+        catch (ArgumentNullException)
         {
             return NotFound();
         }
-
-        var newItem = new Item
-        {
-            Name = createItem.Name,
-            Description = createItem.Description,
-            TodoListId = listId
-        };
-        
-        _context.Items.Add(newItem);
-        await _context.SaveChangesAsync();
-        
-        return CreatedAtAction(
-            nameof(GetItem),
-            routeValues: new { listId, itemId = newItem.Id },
-            value: newItem);
     }
 
     [HttpDelete("{itemId}")]
-    public async Task<ActionResult<Item>> DeleteItem(long listId, long itemId)
+    public async Task<ActionResult> DeleteItem(long listId, long itemId)
     {
-        var itemToDelete = await _context.Items
-            .FirstOrDefaultAsync(i => i.Id == itemId && i.TodoListId == listId);
-
-        if (itemToDelete == null)
+        try
+        {
+            await _itemsService.Delete(listId, itemId);
+            
+            return NoContent();
+        }
+        catch (ArgumentNullException)
         {
             return NotFound();
         }
-        
-        _context.Items.Remove(itemToDelete);
-        await _context.SaveChangesAsync();
-        
-        return NoContent();
     }
 }
