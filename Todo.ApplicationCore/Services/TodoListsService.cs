@@ -1,14 +1,15 @@
 using Todo.ApplicationCore.Interfaces;
 using TodoApi.Dtos;
 using TodoApi.Models;
+using TodoMcpServer.Interfaces;
 
 namespace Todo.ApplicationCore.Services;
 
 public class TodoListsService : ITodoListsService
 {
-    private IRepository<TodoList> _listRepository;
+    private ITodoListRepository _listRepository;
     
-    public TodoListsService(IRepository<Item> repository, IRepository<TodoList> listRepository)
+    public TodoListsService(ITodoListRepository listRepository)
     {
         _listRepository = listRepository;
     }
@@ -18,11 +19,11 @@ public class TodoListsService : ITodoListsService
         List<TodoList> todoList;
         if (string.IsNullOrEmpty(name))
         {
-            todoList = await _listRepository.GetAll();
+            todoList = await _listRepository.GetAllWithItems();
         }
         else
         {
-            todoList = await _listRepository.GetAll(list => list.Name == name && list.Name == name);
+            todoList = await _listRepository.GetAllWithItems(list => list.Name == name && list.Name == name);
         }
 
         return todoList.Select(CreateReadTodoList).ToList();
@@ -30,7 +31,7 @@ public class TodoListsService : ITodoListsService
 
     public async Task<ReadTodoList> GetById(long id)
     {
-        var result = await _listRepository.Get(list => list.Id == id);
+        var result = await _listRepository.GetWithItems(list => list.Id == id);
         return CreateReadTodoList(result);
     }
 

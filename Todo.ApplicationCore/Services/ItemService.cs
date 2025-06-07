@@ -82,6 +82,26 @@ public class ItemService : IItemsService
         return CreateReadItem(result);
     }
 
+    public async Task<ReadItem> MarkComplete(long listId, long itemId)
+    {
+        var itemToUpdate = await _repository
+            .Get(item => item.Id == itemId && item.TodoListId == listId);
+
+        if (itemToUpdate == null)
+        {
+            throw new ArgumentException("Item not found");
+        }
+
+        if (!itemToUpdate.IsComplete)
+        {
+            itemToUpdate.IsComplete = true;
+            var result = await _repository.Update(itemToUpdate);
+            return CreateReadItem(result);
+        }
+
+        return CreateReadItem(itemToUpdate);
+    }
+
     public async Task Delete(long listId, long itemId)
     {
         var itemToDelete = await _repository.Get(i => i.Id == itemId && i.TodoListId == listId);
