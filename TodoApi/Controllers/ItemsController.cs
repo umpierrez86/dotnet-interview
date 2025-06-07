@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Todo.ApplicationCore.Exceptions;
 using Todo.ApplicationCore.Interfaces;
 using TodoApi.Dtos;
 
@@ -31,7 +32,11 @@ public class ItemsController : ControllerBase
             var item = await _itemsService.GetById(listId, itemId);
             return Ok(item);
         }
-        catch(ArgumentException)
+        catch (ArgumentException)
+        {
+            return BadRequest();
+        }
+        catch(NotFoundException)
         {
             return NotFound();
         }
@@ -45,7 +50,7 @@ public class ItemsController : ControllerBase
             var item = await _itemsService.Update(listId, itemId, updateItem);
             return Ok(item);
         }
-        catch(ArgumentNullException)
+        catch(NotFoundException)
         {
             return NotFound();
         }
@@ -59,7 +64,7 @@ public class ItemsController : ControllerBase
             var item = await _itemsService.MarkComplete(listId, itemId);
             return Ok(item);
         }
-        catch(ArgumentNullException)
+        catch(NotFoundException)
         {
             return NotFound();
         }
@@ -77,7 +82,7 @@ public class ItemsController : ControllerBase
                 routeValues: new { listId, itemId = item.Id },
                 value: item);
         }
-        catch (ArgumentNullException)
+        catch (NotFoundException)
         {
             return NotFound();
         }
@@ -92,7 +97,7 @@ public class ItemsController : ControllerBase
             
             return NoContent();
         }
-        catch (ArgumentNullException)
+        catch (NotFoundException)
         {
             return NotFound();
         }

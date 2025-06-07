@@ -1,3 +1,4 @@
+using Todo.ApplicationCore.Exceptions;
 using Todo.ApplicationCore.Interfaces;
 using TodoApi.Dtos;
 using TodoApi.Models;
@@ -39,11 +40,16 @@ public class ItemService : IItemsService
 
     public async Task<ReadItem> Create(long listId, CreateItem createItem)
     {
+        if (string.IsNullOrEmpty(createItem.Name) || string.IsNullOrEmpty(createItem.Description))
+        {
+            throw new ArgumentException("Name and Description cannot be empty");
+        }
+        
         var listExists = await _listRepository.Exist(list => list.Id == listId);
 
         if (!listExists)
         {
-            throw new ArgumentException("List not found");
+            throw new NotFoundException("List not found");
         }
 
         var newItem = new Item
@@ -65,7 +71,7 @@ public class ItemService : IItemsService
         
         if (itemToUpdate == null)
         {
-            throw new ArgumentException("Item not found");
+            throw new NotFoundException("Item not found");
         }
         
         if (!string.IsNullOrEmpty(updateItem.Name) && updateItem.Name != itemToUpdate.Name)
@@ -89,7 +95,7 @@ public class ItemService : IItemsService
 
         if (itemToUpdate == null)
         {
-            throw new ArgumentException("Item not found");
+            throw new NotFoundException("Item not found");
         }
 
         if (!itemToUpdate.IsComplete)
@@ -108,7 +114,7 @@ public class ItemService : IItemsService
 
         if (itemToDelete == null)
         {
-            throw new ArgumentException("Item not found");
+            throw new NotFoundException("Item not found");
         }
 
         await _repository.Remove(itemToDelete);

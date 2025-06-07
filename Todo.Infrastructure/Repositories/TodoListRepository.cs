@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using Todo.ApplicationCore.Exceptions;
 using TodoApi.Models;
 using TodoMcpServer.Interfaces;
 
@@ -22,7 +23,7 @@ public class TodoListRepository(DbContext context) : Repository<TodoList>(contex
 
         if(entity == null)
         {
-            throw new ArgumentException($"Todo list not found");
+            throw new NotFoundException($"Todo list not found");
         }
 
         return entity;

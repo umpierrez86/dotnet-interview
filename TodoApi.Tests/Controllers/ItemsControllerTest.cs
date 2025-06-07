@@ -73,7 +73,7 @@ public class ItemsControllerTest
     }
 
     [Fact]
-    public async Task PutItem_WhenCalled_UpdatesItem()
+    public async Task PatchItem_WhenCalled_UpdatesItem()
     {
         _mockService = new Mock<IItemsService>();
         var updatedItem = new ReadItem { Id = 1, Name = "Updated", Description = "Updated desc", isComplete = true };
@@ -82,10 +82,27 @@ public class ItemsControllerTest
             .ReturnsAsync(updatedItem);
 
         _controller = new ItemsController(_mockService.Object);
-        var result = await _controller.PutItem(1, 1,
+        var result = await _controller.PatchItem(1, 1,
             new UpdateItem { Name = "Updated", Description = "Updated desc" });
 
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var item = Assert.IsType<ReadItem>(okResult.Value);
+        Assert.Equal("Updated", item.Name);
+    }
+    
+    [Fact]
+    public async Task MarkComple_WhenCalled_UpdatesItemToComplete()
+    {
+        _mockService = new Mock<IItemsService>();
+        var updatedItem = new ReadItem { Id = 1, Name = "Updated", Description = "Updated desc", isComplete = true };
+
+        _mockService.Setup(s => s.MarkComplete(1, 1))
+            .ReturnsAsync(updatedItem);
+
+        _controller = new ItemsController(_mockService.Object);
+        var result = await _controller.MarkAsComplete(1, 1);
+
+        var okResult = Assert.IsType<OkObjectResult>(result);
         var item = Assert.IsType<ReadItem>(okResult.Value);
         Assert.Equal("Updated", item.Name);
     }

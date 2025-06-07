@@ -61,9 +61,15 @@ namespace TodoApi.Controllers
         [HttpPost]
         public async Task<ActionResult<TodoList>> PostTodoList(CreateTodoList payload)
         {
-            var result = await _listService.Create(payload); 
-            return CreatedAtAction("GetTodoList", new { id = result.Id }, result);
-
+            try
+            {
+                var result = await _listService.Create(payload);
+                return CreatedAtAction("GetTodoList", new { id = result.Id }, result);
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest();
+            }
         }
 
         // DELETE: api/todolists/5

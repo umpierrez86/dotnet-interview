@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using Todo.ApplicationCore.Exceptions;
 using Todo.ApplicationCore.Interfaces;
 
 namespace Todo.Infrastructure.Repositories;
@@ -33,7 +34,7 @@ public class Repository<TEntity>(DbContext context) : IRepository<TEntity>
 
         if(entity == null)
         {
-            throw new ArgumentException($"Entity {typeof(TEntity).Name} not found");
+            throw new NotFoundException($"Entity {typeof(TEntity).Name} not found");
         }
 
         return entity;

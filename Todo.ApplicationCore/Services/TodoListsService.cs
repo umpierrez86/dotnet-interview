@@ -46,6 +46,11 @@ public class TodoListsService : ITodoListsService
 
     public async Task<ReadTodoList> Create(CreateTodoList todoList)
     {
+        if (string.IsNullOrEmpty(todoList.Name))
+        {
+            throw new ArgumentException("Name and Description cannot be empty");
+        }
+        
         TodoList newList = new TodoList
         {
             Name = todoList.Name
