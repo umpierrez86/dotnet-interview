@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Todo.ApplicationCore.Interfaces;
 using TodoApi.Dtos;
-using TodoApi.Models;
 
 namespace TodoApi.Controllers;
 
@@ -33,18 +31,32 @@ public class ItemsController : ControllerBase
             var item = await _itemsService.GetById(listId, itemId);
             return Ok(item);
         }
-        catch(ArgumentNullException)
+        catch(ArgumentException)
         {
             return NotFound();
         }
     }
 
-    [HttpPut("{itemId}")]
-    public async Task<ActionResult<ReadItem>> PutItem(long listId, long itemId, UpdateItem updateItem)
+    [HttpPatch("{itemId}")]
+    public async Task<ActionResult<ReadItem>> PatchItem(long listId, long itemId, UpdateItem updateItem)
     {
         try
         {
             var item = await _itemsService.Update(listId, itemId, updateItem);
+            return Ok(item);
+        }
+        catch(ArgumentNullException)
+        {
+            return NotFound();
+        }
+    }
+    
+    [HttpPatch("{itemId}/complete")]
+    public async Task<IActionResult> MarkAsComplete(long listId, long itemId)
+    {
+        try
+        {
+            var item = await _itemsService.MarkComplete(listId, itemId);
             return Ok(item);
         }
         catch(ArgumentNullException)
