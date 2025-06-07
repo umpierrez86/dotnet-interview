@@ -12,8 +12,8 @@ public class UpdateToDoValidator : AbstractValidator<UpdateToDoList>
             .MaximumLength(100).WithMessage("Name cannot exceed 100 characters.");
         
         RuleFor(list => list.NewName)
-            .NotEmpty().WithMessage("Name cannot be empty.")
-            .MaximumLength(100).WithMessage("Name cannot exceed 100 characters.");
+            .NotEmpty().WithMessage("New name cannot be empty.")
+            .MaximumLength(100).WithMessage("New name cannot exceed 100 characters.");
         
         RuleFor(list => list.NewName)
             .NotEqual(list => list.Name).WithMessage("Name cannot be the same.");

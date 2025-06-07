@@ -23,7 +23,7 @@ public abstract class ToolExecutor
         }
         catch (ArgumentException ex)
         {
-            return Error("Argument error: " + ex.Message);
+            return Error("Argument error - " + ex.Message);
         }
         catch (HttpRequestException ex)
         {

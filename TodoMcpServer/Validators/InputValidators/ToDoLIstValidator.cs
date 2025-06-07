@@ -3,7 +3,7 @@ using TodoMcpServer.Inputs;
 
 namespace TodoMcpServer.InputValidator;
 
-public class ToDoLIstValidator : AbstractValidator<CreateToDoList>, IValidator<CreateToDoList>
+public class ToDoLIstValidator : AbstractValidator<CreateToDoList>
 {
     public ToDoLIstValidator()
     {
